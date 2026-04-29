@@ -568,6 +568,9 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         `
         }
+        <button class="share-button" data-activity="${name}" aria-label="Share this activity">
+          🔗 Share
+        </button>
       </div>
     `;
 
@@ -587,7 +590,38 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    // Add click handler for share button
+    const shareButton = activityCard.querySelector(".share-button");
+    shareButton.addEventListener("click", () => {
+      shareActivity(name, details);
+    });
+
     activitiesList.appendChild(activityCard);
+  }
+
+  // Share an activity with friends
+  async function shareActivity(name, details) {
+    const schedule = formatSchedule(details);
+    const shareUrl = `${window.location.origin}${window.location.pathname}?activity=${encodeURIComponent(name)}`;
+    const shareText = `Check out "${name}" at Mergington High School!\n${details.description}\nSchedule: ${schedule}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: name, text: shareText, url: shareUrl });
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          console.error("Error sharing:", error);
+        }
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
+        showMessage("Activity link copied to clipboard!", "success");
+      } catch (error) {
+        console.error("Error copying to clipboard:", error);
+        showMessage("Could not copy link. Please try again.", "error");
+      }
+    }
   }
 
   // Event listeners for search and filter
